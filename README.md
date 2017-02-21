@@ -1,0 +1,2 @@
+# deduper
+Duplicate file finder
