@@ -6,6 +6,9 @@ using System.Security;
 
 namespace Deduper
 {
+    /// <summary>
+    ///     Iterator over filenames in a directory subtree
+    /// </summary>
     internal class FileIterator : IEnumerable<string>
     {
         IEnumerator IEnumerable.GetEnumerator()
@@ -69,6 +72,12 @@ namespace Deduper
             }
         }
 
+        /// <summary>
+        ///     Constructor
+        /// </summary>
+        /// <param name="dir">pathname of a root directory to iterate over</param>
+        /// <param name="streamOut">output stream</param>
+        /// <param name="streamError">error stream</param>
         internal FileIterator(string dir, TextWriter streamOut, TextWriter streamError)
         {
             this.rootPath = dir;
@@ -76,7 +85,10 @@ namespace Deduper
             this.streamError = streamError;
         }
 
+        // stores the root of this directory
         private string rootPath;
+
+        // output streams
         private TextWriter streamOut;
         private TextWriter streamError;
     }

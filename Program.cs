@@ -5,12 +5,20 @@ using System.IO;
 
 namespace Deduper
 {
+    /// <summary>
+    ///     Main executable
+    /// </summary>
     class App
     {
+        /// <summary>
+        ///     Main entry point
+        /// </summary>
+        /// <param name="args">console args</param>
         public static void Main(string[] args)
         {
             Console.Out.WriteLine("Deduper run starting");
 
+            // validate args as paths
             var dirs = new HashSet<string>();
             foreach (var arg in args)
             {
@@ -27,18 +35,38 @@ namespace Deduper
                     continue;
                 }
 
-                // TODO: verify nesting
+                var pendingDeletes = new List<string>();
+                foreach (var knownDir in dirs)
+                {
+                    if (dir.StartsWith(knownDir))
+                    {
+                        Console.Error.WriteLine(string.Format("W003: Directory {0} is a descendant of {1} ; ignoring", arg, knownDir));
+                        continue;
+                    }
+
+                    if (knownDir.StartsWith(dir))
+                    {
+                        Console.Error.WriteLine(string.Format("W004: Directory {1} is a descendant of {0} ; ignoring", arg, knownDir));
+                        pendingDeletes.Add(knownDir);
+                    }
+                }
+
+                foreach (var pending in pendingDeletes)
+                {
+                    dirs.Remove(pending);
+                }
 
                 dirs.Add(dir);
             }
 
+            // build map of duplicates
             var deduper = new Deduper(Console.Out, Console.Error);
-
             foreach (var dir in dirs)
             {
                 deduper.ProcessDirectory(dir);
             }
 
+            // report results
             var probableDuplicates = deduper.GetProbableDuplicates();
 
             Console.Out.WriteLine("Probable duplicates: ");

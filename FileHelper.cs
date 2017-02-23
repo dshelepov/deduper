@@ -5,11 +5,26 @@ using System.IO;
 
 namespace Deduper
 {
+    /// <summary>
+    ///     Static helper for handling files
+    /// </summary>
     internal static class FileHelper
     {
+        /// <summary>
+        ///     The low hash will only hash this many bytes from the tail end of a file
+        /// </summary>
         private const long LOW_HASH_OFFSET = 10240; // 10 kb
+
+        /// <summary>
+        ///     The initial part of a file that will never be hashed (unless it's a low hash)
+        /// </summary>
         private const float DISALLOWED_HASH_HEADER_RATIO = 0.1f;
 
+        /// <summary>
+        ///     Returns the size of a file
+        /// </summary>
+        /// <param name="filename">file to look up</param>
+        /// <returns>number of bytes that this byte's data stream contains</returns>
         internal static long GetSize(string filename)
         {
             var info = new FileInfo(filename);
@@ -17,11 +32,22 @@ namespace Deduper
             return info.Length;
         }
 
+        /// <summary>
+        ///     Returns a hash over the smallest part of the file allowed.
+        /// </summary>
+        /// <param name="filename">File to get a hash for</param>
+        /// <returns>64 bit hash</returns>
         internal static long GetLowHash(string filename)
         {
             return FileHelper.GetTieredHash(filename, 0);
         }
 
+        /// <summary>
+        ///     Returns a hash over a variable-sized part of the file.
+        /// </summary>
+        /// <param name="filename">File to get a hash for</param>
+        /// <param name="tier">controls how much of this file to hash.  0 == low hash, each extra consecutive level is larger</param>
+        /// <returns>64 bit hash</returns>
         internal static long GetTieredHash(string filename, ushort tier)
         {
             FileHelper.EnsureTier(tier);
@@ -41,6 +67,12 @@ namespace Deduper
             return tieredHashes[tier][filename];
         }
 
+        /// <summary>
+        ///     Whether this file supports a hash of the specified tier (the file can be too small for a high-tier hash).
+        /// </summary>
+        /// <param name="filename">File to get a hash for</param>
+        /// <param name="tier">what tier to look up</param>
+        /// <returns>true iff file supports hash of this size</returns>
         internal static bool SupportsTieredHash(string filename, ushort tier)
         {
             long size = FileHelper.GetSize(filename);
@@ -94,6 +126,7 @@ namespace Deduper
             FileHelper.tieredHashes.Add(new Dictionary<string, long>());
         }
 
+        // array of tiers.  Each slot contains a filename->hash map for that tier.  Used for caching
         private static List<Dictionary<string, long>> tieredHashes;
     }
 }
